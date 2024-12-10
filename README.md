@@ -23,7 +23,7 @@ This project includes the following three types of Excel workbooks:
    - Manages information included in `pv_db` (such as another song and `auth_3d` replacement information) and outputs it in `pv_db` format as needed.
 
 ## Usage
-For detailed instructions on how to use DIVA-PVDataManager, please refer to the [Wiki](https://github.com/Riel2982/-DIVA-PVDataManager/wiki).
+For detailed instructions on how to use DIVA-PVDataManager, please refer to the [Wiki](https://github.com/Riel2982/DIVA-PVDataManager/wiki).
 
 ## Contributing
 Please report bugs or request features via Issues or on Discord. Pull requests are also welcome. Feedback on compatibility with other versions is appreciated. Additionally, the development of standalone software that can achieve the same or better functionality is welcome.
