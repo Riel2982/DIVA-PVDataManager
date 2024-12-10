@@ -1,5 +1,5 @@
-Attribute VB_Name = "Module1"
-Sub Auth3dSortList()
+Attribute VB_Name = "Auth3d_SortList"
+Sub Auth3dSortList(sheetName As String)
     Dim ws1 As Worksheet, ws2 As Worksheet, ws3 As Worksheet
     Dim i As Long, lastRow As Long, destRow As Long
     Dim tempCategory As String, tempOrgUid As String, tempSize As Long, tempValue As String
@@ -8,14 +8,16 @@ Sub Auth3dSortList()
     Dim filteredIndex As Long
 
     ' Set sheets
-    Set ws1 = ThisWorkbook.Sheets("mod_auth_3d_db")
+    Set ws1 = ThisWorkbook.Sheets(sheetName)
     Set ws2 = ThisWorkbook.Sheets("ConvertAuth3dList")
     Set ws3 = ThisWorkbook.Sheets("Temp")
 
-    ' Clear all rows except the first row in ws2
-    If ws2.UsedRange.Rows.Count > 1 Then
-        ws2.Rows("2:" & ws2.Rows.Count).Clear
-    End If
+    ' Clear all rows in ws2 and set headers
+    ws2.Cells.Clear
+    ws2.Cells(1, 2).Value = "Category"
+    ws2.Cells(1, 3).Value = "org_uid"
+    ws2.Cells(1, 4).Value = "size"
+    ws2.Cells(1, 5).Value = "a3da_Name"
     ' Clear ws3
     ws3.Cells.Clear
 
@@ -24,14 +26,14 @@ Sub Auth3dSortList()
 
     ' Load data from ws1 into an array
     If lastRow > 1 Then
-        dataArray = ws1.Range("A1:A" & lastRow).Value ' Get as a 2D array
+        dataArray = ws1.Range("A2:A" & lastRow).Value ' Get as a 2D array
     Else
         MsgBox "No data in range"
         Exit Sub
     End If
 
     ' Initialize array for filtering
-    ReDim filteredData(1 To lastRow)
+    ReDim filteredData(1 To lastRow - 1) ' A1 is not included, so -1
     filteredIndex = 0
 
     ' Filtering
@@ -42,7 +44,7 @@ Sub Auth3dSortList()
         End If
     Next i
 
-    ' Adjust the size of the filtered arra
+    ' Adjust the size of the filtered array
     ReDim Preserve filteredData(1 To filteredIndex)
 
     ' Sort by numbers
@@ -72,12 +74,22 @@ Sub Auth3dSortList()
     Next i
 
     ' Write uid.max one cell below the last
-    ws2.Cells(destRow + 1, 2).Value = "uid.max"
-    ws2.Cells(destRow + 1, 3).Value = Split(dataArray(lastRow, 1), "=")(1)
+    If lastRow - 1 <= UBound(dataArray, 1) Then
+        ws2.Cells(destRow + 1, 2).Value = "uid.max"
+        ws2.Cells(destRow + 1, 3).Value = Split(dataArray(lastRow - 1, 1), "=")(1)
+    Else
+        MsgBox "Data array range issue"
+        Exit Sub
+    End If
 
-    ' Clear the content of "Empty"
+    ' Clear the content of "Temp"
     ws3.Cells.Clear
+    
+    ' Activate the ConvertAuth3dList
+    ws2.Activate
+
 End Sub
+
 
 Sub BubbleSort(arr As Variant)
     Dim i As Long, j As Long
@@ -105,14 +117,6 @@ Sub BubbleSort(arr As Variant)
     Next i
 End Sub
 
-' Workbook activated
-Private Sub Workbook_SheetActivate(ByVal Sh As Object)
-    If Sh.Name = "ConvertAuth3dList" Then
-        Call Auth3dSortList
-    End If
-End Sub
-
-
 
 Sub CopyToClipboard(sheetName As String)
     Dim lastRow As Long
@@ -136,6 +140,11 @@ Sub CopyToClipboard(sheetName As String)
 End Sub
 
 ' Procedure to register directly as macro
+
+Public Sub RunConvert()
+    Auth3dSortList ActiveSheet.Name
+End Sub
+
 Public Sub RunCopy()
     CopyToClipboard ActiveSheet.Name
 End Sub

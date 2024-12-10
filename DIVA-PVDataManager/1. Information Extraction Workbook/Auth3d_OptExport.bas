@@ -1,4 +1,4 @@
-Attribute VB_Name = "Module2"
+Attribute VB_Name = "Auth3d_OptExport"
 Sub OptExportAuth3dDB(sheetName As String, Optional isExport As Boolean = False)
     Dim ws1 As Worksheet, ws2 As Worksheet, ws3 As Worksheet
     Dim lastRow As Long, destRow As Long, i As Long, uidCounter As Long
