@@ -23,7 +23,7 @@ Sub ConvertAnotherSong(sheetName As String)
     ' Set the slot groups to be processed
     Dim includeGroups As Variant
     Dim excludeGroups As Variant
-    includeGroups = Split(ThisWorkbook.Sheets(sheetName).Cells(11, 9).value, "/") ' Split the value in I11 into an array
+    includeGroups = Split(ThisWorkbook.Sheets("Temp").Cells(3, 6).value, "/") ' Split the value in I11 into an array
     excludeGroups = Split(ThisWorkbook.Sheets(sheetName).Cells(12, 9).value, "/") ' Split the value in I12 into an array
 
     ' Disable screen updating and automatic calculation
