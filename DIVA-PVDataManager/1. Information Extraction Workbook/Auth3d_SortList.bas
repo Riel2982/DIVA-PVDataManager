@@ -6,6 +6,10 @@ Sub Auth3dSortList(sheetName As String)
     Dim dataArray As Variant
     Dim filteredData() As Variant
     Dim filteredIndex As Long
+    
+    ' Disable screen updating and automatic calculation
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
 
     ' Set sheets
     Set ws1 = ThisWorkbook.Sheets(sheetName)
@@ -85,6 +89,11 @@ Sub Auth3dSortList(sheetName As String)
     ' Clear the content of "Temp"
     ws3.Cells.Clear
     
+    ' Re-enable screen updating and automatic calculation
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+    
+    
     ' Activate the ConvertAuth3dList
     ws2.Activate
 
@@ -93,7 +102,7 @@ End Sub
 
 Sub BubbleSort(arr As Variant)
     Dim i As Long, j As Long
-    Dim temp As Variant
+    Dim Temp As Variant
     Dim index1 As Long, index2 As Long
     Dim success As Boolean
 
@@ -105,9 +114,9 @@ Sub BubbleSort(arr As Variant)
             index2 = CLng(Split(Split(arr(j), "=")(0), ".")(1))
             If Err.Number = 0 Then
                 If index1 > index2 Then
-                    temp = arr(i)
+                    Temp = arr(i)
                     arr(i) = arr(j)
-                    arr(j) = temp
+                    arr(j) = Temp
                 End If
                 success = True
             End If
@@ -117,35 +126,57 @@ Sub BubbleSort(arr As Variant)
     Next i
 End Sub
 
-
 Sub CopyToClipboard(sheetName As String)
     Dim lastRow As Long
     Dim ws As Worksheet
+    Dim i As Long
     Set ws = ThisWorkbook.Sheets(sheetName)
     
-    ' Get the last row with data (until an empty cell is found in columns B to E)
+    ' Get the last row with data (until an empty cell is found in column B)
     For i = 2 To ws.Rows.Count
-        If IsEmpty(ws.Cells(i, "B")) Or IsEmpty(ws.Cells(i, "C")) Or IsEmpty(ws.Cells(i, "D")) Or IsEmpty(ws.Cells(i, "E")) Then
+        If IsEmpty(ws.Cells(i, "B")) Then
             lastRow = i - 1
             Exit For
         End If
     Next i
     
-    ' Select the range from A1 to the last row with data in column E
+    ' If no empty cell is found in column B, set lastRow to the last row in the sheet
+    If lastRow = 0 Then lastRow = ws.Cells(ws.Rows.Count, "B").End(xlUp).Row
+    
+    ' Determine the range to copy
     Dim rng As Range
-    Set rng = ws.Range("A2:E" & lastRow)
+    If WorksheetFunction.CountA(ws.Range("A2:A" & lastRow)) = 0 Then
+        ' If there is no data in column A but there is data in column B
+        If WorksheetFunction.CountA(ws.Range("B2:B" & lastRow)) > 0 Then
+            ' Include F-H columns if any data is found in F-H columns
+            If WorksheetFunction.CountA(ws.Range("F2:H" & lastRow)) > 0 Then
+                Set rng = ws.Range("A2:H" & lastRow)
+            Else
+                Set rng = ws.Range("A2:E" & lastRow)
+            End If
+        End If
+    Else
+        ' If there is data in column A, copy from A2 to the first empty cell in column A
+        For i = 2 To ws.Rows.Count
+            If IsEmpty(ws.Cells(i, "A")) Then
+                lastRow = i - 1
+                Exit For
+            End If
+        Next i
+        Set rng = ws.Range("A2:A" & lastRow)
+    End If
     
     ' Copy to clipboard
     rng.Copy
 End Sub
 
+
 ' Procedure to register directly as macro
 
 Public Sub RunConvert()
-    Auth3dSortList ActiveSheet.Name
+    Auth3dSortList activeSheet.name
 End Sub
 
 Public Sub RunCopy()
-    CopyToClipboard ActiveSheet.Name
+    CopyToClipboard activeSheet.name
 End Sub
-

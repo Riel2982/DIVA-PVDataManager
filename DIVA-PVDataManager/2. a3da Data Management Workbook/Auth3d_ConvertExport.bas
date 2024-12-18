@@ -1,4 +1,4 @@
-Attribute VB_Name = "Module1"
+Attribute VB_Name = "Auth3d_ConvertExport"
 ' Automatically adjust table range
 Public Sub AdjustTableRange(sheetName As String, tableIndex As Integer)
     Dim tbl As ListObject
@@ -6,6 +6,10 @@ Public Sub AdjustTableRange(sheetName As String, tableIndex As Integer)
     Dim lastCol As Long
     Dim ws As Worksheet
     Dim tableName As String
+    
+    ' Disable screen updating and automatic calculation
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
     
     Set ws = ThisWorkbook.Sheets(sheetName)
     
@@ -21,6 +25,11 @@ Public Sub AdjustTableRange(sheetName As String, tableIndex As Integer)
     
     ' Adjust the table range
     tbl.Resize tbl.Range.Resize(lastRow - tbl.HeaderRowRange.Row + 1, lastCol - tbl.Range.Column + 1)
+
+    ' Re-enable screen updating and automatic calculation
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+
 End Sub
 
 ' Convert to mod_auth_3d_db format
@@ -32,6 +41,10 @@ Public Sub SortAuth3d(sheetName As String)
     Dim data As Variant
     Dim tempArray() As String
     Dim currentRow As Long
+
+    ' Disable screen updating and automatic calculation
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
 
     Set ws = ThisWorkbook.Sheets(sheetName)
     Set ws2 = ThisWorkbook.Sheets("Preview")
@@ -63,8 +76,8 @@ Public Sub SortAuth3d(sheetName As String)
     j = 0
     maxUid = 0
     For i = 2 To lastRow
-        ' Skip rows with "š"
-        If ws.Cells(i, "A").Value <> "š" Then
+        ' Skip rows with "ﾂ・｡"
+        If ws.Cells(i, "A").Value <> "ﾂ・｡" Then
             ' Add error check
             If IsEmpty(ws.Cells(i, "C").Value) Then
                 Exit Sub
@@ -98,9 +111,13 @@ Public Sub SortAuth3d(sheetName As String)
     For i = 1 To UBound(tempArray)
         ws2.Cells(i + 2, 1).Value = tempArray(i)
     Next i
+    
+    ' Re-enable screen updating and automatic calculation
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+    
 End Sub
 
-' Export as mod_3d_db.bin
 Public Sub ExportAuth3dDataBaseBin(sheetName As String)
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets(sheetName)
@@ -118,18 +135,30 @@ Public Sub ExportAuth3dDataBaseBin(sheetName As String)
     
     ' Set the target sheet
     Set ws = ThisWorkbook.Worksheets("Preview")
+    Set wsPath = ThisWorkbook.Sheets(sheetName)
 
-    ' Display save dialog (folder selection only)
-    Set fileDialog = Application.fileDialog(msoFileDialogFolderPicker)
-    With fileDialog
-        .Title = "Please select a folder to save"
-        .Show
-        If .SelectedItems.Count > 0 Then
-            folderPath = .SelectedItems(1)
-        Else
-            Exit Sub
-        End If
-    End With
+    ' Get the path to the save location from cell J1
+    folderPath = wsPath.Range("J1").Value
+
+    ' Validate the folder path
+    If folderPath = "" Or Dir(folderPath, vbDirectory) = "" Then
+        ' Show the save dialog (folder selection only) if J1 is empty or invalid
+        Set fileDialog = Application.fileDialog(msoFileDialogFolderPicker)
+        With fileDialog
+            .Title = "Please select a folder to save"
+            .Show
+            If .SelectedItems.Count > 0 Then
+                folderPath = .SelectedItems(1)
+            Else
+                Exit Sub
+            End If
+        End With
+    End If
+    
+    ' Ensure the folder path ends with a backslash
+    If Right(folderPath, 1) <> "\" Then
+        folderPath = folderPath & "\"
+    End If
     
     ' Set fixed file name
     fileName = "mod_auth_3d_db.bin"
@@ -154,6 +183,7 @@ Public Sub ExportAuth3dDataBaseBin(sheetName As String)
     Next cell
     Close #fileNumber ' Close the file
 End Sub
+
 
 Public Sub QuickSort(arr() As String, first As Long, last As Long)
     Dim low As Long, high As Long, mid As String, temp As String

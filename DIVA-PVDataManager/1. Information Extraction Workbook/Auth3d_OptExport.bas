@@ -43,7 +43,7 @@ Sub OptExportAuth3dDB(sheetName As String, Optional isExport As Boolean = False)
             uid = Split(ws1.Cells(i, 1).Value, ".")(1)
             ' Exclude uid.length and uid.max
             If IsNumeric(uid) Then
-                If uidDict.Exists(uid) Then
+                If uidDict.exists(uid) Then
                     uidDict(uid) = uidDict(uid) + 1
                 Else
                     uidDict(uid) = 1
@@ -94,7 +94,7 @@ Sub OptExportAuth3dDB(sheetName As String, Optional isExport As Boolean = False)
     lastRow = ws2.Cells(ws2.Rows.Count, 1).End(xlUp).Row
     For i = 1 To lastRow Step 4
         currentCategory = Split(ws2.Cells(i, 1).Value, "=")(1)
-        If Not categoryDict.Exists(currentCategory) Then
+        If Not categoryDict.exists(currentCategory) Then
             categoryDict.Add currentCategory, categoryDict.Count
             ws3.Cells(destRow, 1).Value = "category." & categoryDict(currentCategory) & ".value=" & currentCategory
             destRow = destRow + 1
@@ -131,7 +131,7 @@ Sub OptExportAuth3dDB(sheetName As String, Optional isExport As Boolean = False)
     
     ' Export to binary file if needed
     If isExport Then
-        ExportAuth3dDataBaseBin
+        ExportAuth3dDBBin activeSheet.name
     End If
 End Sub
 
@@ -158,23 +158,22 @@ Sub QuickSort(arr As Variant, left As Long, right As Long)
 End Sub
 
 Sub Swap(arr As Variant, a As Long, b As Long)
-    Dim temp As String
-    temp = arr(a)
+    Dim Temp As String
+    Temp = arr(a)
     arr(a) = arr(b)
-    arr(b) = temp
+    arr(b) = Temp
 End Sub
 
 
 Public Sub RunOptimize()
-    OptExportAuth3dDB ActiveSheet.Name
+    OptExportAuth3dDB activeSheet.name
 End Sub
 
-Public Sub RunExport()
-    OptExportAuth3dDB ActiveSheet.Name, True
+Public Sub RunExportB()
+    OptExportAuth3dDB activeSheet.name, True
 End Sub
 
-' Output as mod_3d_db.bin
-Public Sub ExportAuth3dDataBaseBin()
+Public Sub ExportAuth3dDBBin(sheetName As String)
     Dim ws As Worksheet, fileDialog As fileDialog, fileNumber As Integer
     Dim folderPath As String, fileName As String, filePath As String
     Dim newFileName As String, currentDateTime As String, cellValue As String
@@ -182,27 +181,42 @@ Public Sub ExportAuth3dDataBaseBin()
     ' Set the target sheet
     Set ws = ThisWorkbook.Worksheets("OptAuth3dDB")
     
-    ' Show the save dialog (folder selection only)
-    Set fileDialog = Application.fileDialog(msoFileDialogFolderPicker)
-    With fileDialog
-        .Title = "Please select a folder to save"
-        .Show
-        If .SelectedItems.Count > 0 Then
-            folderPath = .SelectedItems(1)
-        Else
-            Exit Sub
-        End If
-    End With
+    ' Get the correct worksheet for file path
+    Dim wsPath As Worksheet
+    Set wsPath = ThisWorkbook.Sheets(sheetName)
+    
+    ' Get the path to the save location from cell A1
+    folderPath = wsPath.Range("A1").Value
+    
+    ' Validate the folder path
+    If folderPath = "" Or Dir(folderPath, vbDirectory) = "" Then
+        ' Show the save dialog (folder selection only) if A1 is empty or invalid
+        Set fileDialog = Application.fileDialog(msoFileDialogFolderPicker)
+        With fileDialog
+            .Title = "Please select a folder to save"
+            .Show
+            If .SelectedItems.Count > 0 Then
+                folderPath = .SelectedItems(1)
+            Else
+                Exit Sub
+            End If
+        End With
+    End If
+
+    ' Ensure the folder path ends with a backslash
+    If right(folderPath, 1) <> "\" Then
+        folderPath = folderPath & "\"
+    End If
     
     ' Set the fixed file name
     fileName = "mod_auth_3d_db.bin"
-    filePath = folderPath & "\" & fileName
+    filePath = folderPath & fileName
     
     ' If a file with the same name exists, rename it
     If Dir(filePath) <> "" Then
         currentDateTime = Format(Now, "yyyy-mm-dd_hh-nn-ss")
         newFileName = "mod_auth_3d_db_" & currentDateTime & ".bin"
-        Name filePath As folderPath & "\" & newFileName
+        Name filePath As folderPath & newFileName
     End If
     
     ' Open the file in text mode
@@ -217,3 +231,4 @@ Public Sub ExportAuth3dDataBaseBin()
     Next cell
     Close #fileNumber ' Close the file
 End Sub
+
