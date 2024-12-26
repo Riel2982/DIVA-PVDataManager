@@ -6,6 +6,7 @@ This project is for managing ProjectDIVA's pv_db and auth_3d_db using Excel VBA.
 ## Requirements
 - Microsoft Excel
 - VBA enabled
+- Sakura Editor (To write mod_pv_db.txt)
 
 *Note: This project has been tested with Excel 2013. Compatibility with other versions is unknown.*
 *Note: Google Sheets does not support Excel VBA functionality, so please be aware of this limitation.*
