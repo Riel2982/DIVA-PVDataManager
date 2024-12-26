@@ -123,11 +123,15 @@ NextSlot:
         ' Process file name
         ElseIf InStr(cellValue, ".song_file_name=") > 0 Then
             Dim fileNameParts() As String
-            fileNameParts = Split(cellValue, "song/")
-            If UBound(fileNameParts) > 0 Then
-                ws3.Cells(currentRow, 6).Value = fileNameParts(1)
+           fileNameParts = Split(cellValue, "song/")
+           If UBound(fileNameParts) > 0 Then
+                Dim fileName As String
+                fileName = fileNameParts(1)
+             ' Remove the extension
+             fileName = Replace(fileName, ".ogg", "")
+                ws3.Cells(currentRow, 6).Value = fileName
             Else
-                ws3.Cells(currentRow, 6).Value = ""
+             ws3.Cells(currentRow, 6).Value = ""
             End If
         ' Process vocal display name
         ElseIf InStr(cellValue, ".vocal_disp_name=") > 0 Then
